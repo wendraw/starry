@@ -9,10 +9,7 @@ lerna-debug.log*
 
 node_modules
 dist
-types
-*.tsbuildinfo
-dist-ssr
-*.local
+tsconfig.tsbuildinfo
 
 # Editor directories and files
 .idea
@@ -23,5 +20,3 @@ dist-ssr
 *.sln
 *.sw?
 
-auto-imports.d.ts
-components.d.ts
