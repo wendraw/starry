@@ -71,8 +71,8 @@ async function getStarryConfigAsync() {
     // absolute file paths don't work on Windows
     return (await import(pathToFileURL(STARRY_CONFIG_FILE).href)).default as StarryConfig
   }
-  catch (err) {
-    console.error(err)
+  catch {
+    // maybe no starry.config.mjs
     return {}
   }
 }

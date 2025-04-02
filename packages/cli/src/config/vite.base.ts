@@ -3,7 +3,6 @@ import type { InlineConfig } from 'vite'
 import type { OptionsType } from '../common/index'
 import type { BuildLibOptions } from '../common/index.js'
 import vitePluginVue from '@vitejs/plugin-vue'
-import UnoCSS from 'unocss/vite'
 import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
 
@@ -44,14 +43,21 @@ export async function getViteConfigForSiteDev(_: OptionsType): Promise<InlineCon
         ],
         dts: true,
         vueTemplate: true,
+        // resolvers: [
+        //   (context) => {
+        //     console.log('------', context)
+        //     return {
+        //       from: context,
+        //       importNames: ['default'],
+        //     }
+        //   },
+        // ],
       }),
       // https://github.com/antfu/vite-plugin-components
       Components({
         dts: true,
         resolvers: [StarryUiResolver('Starry', '@wendraw/ui')],
       }),
-      // https://github.com/antfu/unocss
-      UnoCSS(),
     ],
 
     server: {

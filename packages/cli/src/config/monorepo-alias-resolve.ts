@@ -1,6 +1,7 @@
 import type { Alias } from 'vite'
 import fs from 'node:fs/promises'
 import path, { join, resolve } from 'node:path'
+import { ESLint } from 'eslint'
 import { ROOT } from '../common/constant.js'
 import { exists, isDir } from '../common/index.js'
 
@@ -14,9 +15,13 @@ interface PackageJson {
     import?: relativePath
     default?: relativePath
     require?: relativePath
+    /** 源码路径 */
+    source?: relativePath
   }>
   buildOptions?: {
-    isLib: boolean
+    isLib?: boolean
+    /** 源码目录，默认是 src */
+    srcDir?: string
   }
 }
 
@@ -25,33 +30,56 @@ interface PackageJson {
  * source: @wendraw/styles => user-path/wendraw/packages/styles
  *      or @wendraw/styles/colors => user-path/wendraw/packages/styles/colors
  */
-export async function monorepoCustomResolver(dir: string, packagesJson: PackageJson, source: string) {
-  let sourcePath = source
-  // 如果 import 使用的是比 dir 长，那说明是使用了 export 的子包
+export async function monorepoCustomResolver(dir: string, packagesJson: PackageJson, source?: string) {
+  let sourcePath = source ?? ''
+  // 如果 import 使用的 source 是比 dir 长，那说明是使用了 export 的子包如 @wendraw/styles/colors
   const exportSubpackPath = sourcePath.replace(dir, '')
   if (exportSubpackPath) {
     const relativePath = `.${resolve('./', exportSubpackPath)}` as relativePath
     if (packagesJson.exports?.[relativePath]) {
-      // TODO: @wendraw exports 中的路径可能是构建后的产物，可能不能直接用
-      const subpackPath = packagesJson.type === 'module'
+      let subpackPath = packagesJson.type === 'module'
         ? (packagesJson.exports[relativePath].import || packagesJson.exports[relativePath].default || '')
         : packagesJson.exports[relativePath].require ?? ''
-      sourcePath = resolve(dir.replace(exportSubpackPath, ''), subpackPath)
+      // ./dist/inner/index.js => inner/index.js
+      subpackPath = subpackPath.substring(subpackPath.indexOf(exportSubpackPath)).replace(/^\//, '')
+      sourcePath = resolve(dir, subpackPath).replace(/\.js|\.mjs$/, '.ts')
     }
   }
   else {
     // 没有使用子包的模式
-    // 先判断 exports
     const relativePath = '.'
-    let subpackPath = packagesJson.type === 'module' ? packagesJson.module : packagesJson.main
-    subpackPath = subpackPath || packagesJson.main // 可能没有配置 module 字段
+    let mainPath = packagesJson.type === 'module' ? packagesJson.module : packagesJson.main
+    mainPath = mainPath || packagesJson.main // 可能没有配置 module 字段
+    // 判断 exports
     if (packagesJson.exports?.[relativePath]) {
-      subpackPath = packagesJson.type === 'module'
+      mainPath = packagesJson.type === 'module'
         ? (packagesJson.exports[relativePath].import || packagesJson.exports[relativePath].default)
         : packagesJson.exports[relativePath].require
     }
-    // 再使用 module
-    sourcePath = resolve(dir.replace(exportSubpackPath, ''), subpackPath ?? '')
+    console.log('mainPath', mainPath, sourcePath, dir)
+    sourcePath = await findSourcePath(sourcePath, dir)
+  }
+
+  async function findSourcePath(sourcePath: string, dir: string) {
+    let dirPath = sourcePath
+    const subpackPath = sourcePath.replace(dir, '').replace(/^\//, '')
+    const exts = ['.ts', '.tsx', '.jsx', '.mjs']
+    if (exts.some(e => sourcePath.endsWith(e))) {
+      // sourcePath 是文件
+      dirPath = dir
+    }
+    for (const e of exts) {
+      const srcDir = packagesJson.buildOptions?.srcDir ?? 'src'
+      const resPath = resolve(dirPath, srcDir, subpackPath || `index${e}`) // 源码放在 src 下
+      const rootPath = resolve(dirPath, subpackPath || `index${e}`) // 源码放在根目录下
+      if (await exists(resPath)) {
+        return resPath
+      }
+      if (await exists(rootPath)) {
+        return rootPath
+      }
+    }
+    return sourcePath
   }
 
   // 是否是文件
@@ -59,18 +87,7 @@ export async function monorepoCustomResolver(dir: string, packagesJson: PackageJ
     return sourcePath
   }
   // 没有对应的声明就使用 src 下的 index
-  const ext = ['.ts', '.tsx', '.js', '.jsx', '.mjs']
-  for (const e of ext) {
-    const resPath = resolve(sourcePath, 'src', `index${e}`) // 源码放在 src 下
-    const rootPath = resolve(sourcePath, `index${e}`) // 源码放在根目录下
-    if (await exists(resPath)) {
-      return resPath
-    }
-    if (await exists(rootPath)) {
-      return rootPath
-    }
-  }
-  return source
+  return await findSourcePath(sourcePath, dir)
 }
 
 async function getMonoRepoSubpackMap(dir: string) {
@@ -96,22 +113,52 @@ async function getMonoRepoSubpackMap(dir: string) {
   return packageJsonMap
 }
 
-export async function genMonorepoAlias(prefix = '@wendraw'): Promise<Alias[]> {
+export async function genMonorepoAlias(prefix?: string): Promise<Alias[]> {
   const alias: Alias[] = []
   // get all package from package.json subpackage
   const packageJsonMap = await getMonoRepoSubpackMap(ROOT)
   for (const dir in packageJsonMap) {
+    if (dir.includes('@wendraw/starry')) {
+      continue
+    }
     const json = packageJsonMap[dir]
     if (json.buildOptions?.isLib) {
       continue // 如果是 lib 就不需要 alias
     }
-    if (json?.name?.startsWith(prefix)) {
+    if (json?.name?.startsWith(prefix ?? '')) {
       alias.push({
         find: json.name,
         replacement: `${dir}`,
-        customResolver: source => monorepoCustomResolver(dir, json, source),
+        customResolver: (source) => {
+          return monorepoCustomResolver(dir, json, source)
+        },
       })
     }
   }
   return alias
+}
+
+export async function genMonorepoDTSFile(prefix = '@wendraw', opts: { filePath: string }) {
+  const { filePath } = opts
+  const alias = await genMonorepoAlias(prefix)
+  const dts = `
+  /* eslint-disable */
+  /* prettier-ignore */
+  // @ts-nocheck
+  Generated by @wendraw/starry
+  declare module '${alias.map(item => item.find).join('|')}' {
+    const content: any
+  }
+  `
+
+  const eslint = new ESLint({
+    fix: true,
+  })
+  const results = await eslint.lintText(dts, {
+    filePath,
+    warnIgnored: false,
+  })
+  const [{ output }] = results
+
+  await fs.writeFile(filePath, output || dts)
 }

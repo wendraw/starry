@@ -1,0 +1,22 @@
+{
+  "name": "@wendraw/lib",
+  "version": "1.0.0",
+  "description": "",
+  "author": "",
+  "license": "ISC",
+  "keywords": [],
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.js"
+    },
+    "./inner": {
+      "import": "./dist/inner/index.js",
+      "require": "./dist/inner/index.js"
+    }
+  },
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}
