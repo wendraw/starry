@@ -3,7 +3,7 @@
   "private": true,
   "packageManager": "pnpm@10.7.1",
   "scripts": {
-    "dev": "pnpm -F playground dev",
+    "dev": "pnpm -F starry dev",
     "build": "pnpm -r build",
     "lint": "eslint --cache .",
     "lint:fix": "eslint . --fix",

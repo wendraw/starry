@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { add, hello } from '@wendraw/lib'
-import { innerSub } from '@wendraw/lib/inner'
+console.log(add(1, 3))
 </script>
 
 <template>

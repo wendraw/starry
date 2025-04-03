@@ -23,7 +23,7 @@
   ],
   "scripts": {
     "dev": "tsc --watch",
-    "build": "rimraf ./tsconfig.tsbuildinfo && rimraf ./lib && tsc -p ./tsconfig.build.json",
+    "build": "rimraf *.tsbuildinfo && rimraf ./lib && tsc -p ./tsconfig.build.json",
     "test": "vitest",
     "prepare": "pnpm build",
     "prepack": "pnpm build"

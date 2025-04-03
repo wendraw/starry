@@ -4,18 +4,16 @@ import type { OptionsType } from '../common/index'
 import type { BuildLibOptions } from '../common/index.js'
 import vitePluginVue from '@vitejs/plugin-vue'
 import AutoImport from 'unplugin-auto-import/vite'
-import Components from 'unplugin-vue-components/vite'
 
 import Pages from 'vite-plugin-pages'
 import Layouts from 'vite-plugin-vue-layouts'
 import { setBuildTarget } from '../common/index.js'
-import { genMonorepoAlias } from './monorepo-alias-resolve.js'
-import { StarryUiResolver } from './unplugin-vue-component-resolver.js'
+import { genMonorepoInfo } from './monorepo-alias-resolve.js'
 
 export async function getViteConfigForSiteDev(_: OptionsType): Promise<InlineConfig> {
   setBuildTarget('site')
 
-  const alias = await genMonorepoAlias()
+  const { alias, dirsList } = await genMonorepoInfo()
 
   return {
     resolve: {
@@ -37,32 +35,22 @@ export async function getViteConfigForSiteDev(_: OptionsType): Promise<InlineCon
       Layouts(),
       // https://github.com/antfu/unplugin-auto-import
       AutoImport({
-        imports: [
-          'vue',
-          'vue-router',
-        ],
-        dts: true,
+        imports: ['vue', 'vue-router'],
         vueTemplate: true,
-        // resolvers: [
-        //   (context) => {
-        //     console.log('------', context)
-        //     return {
-        //       from: context,
-        //       importNames: ['default'],
-        //     }
-        //   },
-        // ],
-      }),
-      // https://github.com/antfu/vite-plugin-components
-      Components({
-        dts: true,
-        resolvers: [StarryUiResolver('Starry', '@wendraw/ui')],
+        injectAtEnd: true,
+        // 添加对用户定义的 stores 的自动导入支持
+        dirs: dirsList,
+        // 启用目录扫描的类型支持
+        dirsScanOptions: {
+          types: true,
+        },
       }),
     ],
 
     server: {
       open: true,
       host: true,
+      port: 9547,
     },
   }
 }
