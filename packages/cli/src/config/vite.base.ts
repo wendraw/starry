@@ -5,8 +5,6 @@ import type { BuildLibOptions } from '../common/index.js'
 import vitePluginVue from '@vitejs/plugin-vue'
 import AutoImport from 'unplugin-auto-import/vite'
 
-import Pages from 'vite-plugin-pages'
-import Layouts from 'vite-plugin-vue-layouts'
 import { setBuildTarget } from '../common/index.js'
 import { genMonorepoInfo } from './monorepo-alias-resolve.js'
 
@@ -28,11 +26,6 @@ export async function getViteConfigForSiteDev(_: OptionsType): Promise<InlineCon
 
     plugins: [
       vitePluginVue(),
-      // https://github.com/hannoeru/vite-plugin-pages
-      Pages({
-        exclude: ['**/components/**/*'],
-      }),
-      Layouts(),
       // https://github.com/antfu/unplugin-auto-import
       AutoImport({
         imports: ['vue', 'vue-router'],

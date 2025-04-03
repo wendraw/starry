@@ -17,27 +17,11 @@
 - [x] dev (site)
 - [x] build (site)
 - [x] build (lib)
-- [ ] lint
-- [ ] release
-- [ ] test
-
-对于非源码引用方式的包，可以在 package.json 中添加 buildOptions 来跳过 alias 的配置，例如：
-
-```json
-{
-  "buildOptions": {
-    "isLib": true
-  }
-}
-```
 
 内置 vite 插件：
 
 - @vitejs/plugin-vue
 - unplugin-auto-import
-- unplugin-vue-components
-- vite-plugin-pages
-- vite-plugin-vue-layouts
 
 ## 支持 monorepos 项目
 
@@ -45,3 +29,5 @@
 
 - vite build 需要找到源代码或者编译后的代码
 - 支持直接跳转到源码
+
+而这些需求都可以通过 vite 的 resolve.alias 和 unplugin-auto-import 来解决。
