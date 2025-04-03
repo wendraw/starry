@@ -1,9 +1,9 @@
 {
   "version": "0.0.0",
   "private": true,
-  "packageManager": "pnpm@9.15.0",
+  "packageManager": "pnpm@10.7.1",
   "scripts": {
-    "dev": "pnpm -F playground dev",
+    "dev": "pnpm -F starry dev",
     "build": "pnpm -r build",
     "lint": "eslint --cache .",
     "lint:fix": "eslint . --fix",
@@ -11,15 +11,16 @@
     "publish": "bumpp package.json packages/*/package.json --commit --push --tag && pnpm run build && pnpm -r publish"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "^3.12.0",
-    "@types/node": "^18.19.68",
+    "@antfu/eslint-config": "^4.11.0",
+    "@types/node": "^18.19.86",
     "@wendraw/starry": "workspace:*",
-    "bumpp": "^9.9.1",
-    "eslint": "^9.17.0",
-    "eslint-plugin-format": "^0.1.3",
-    "typescript": "^5.7.2",
-    "vite": "^6.0.3",
-    "vite-plugin-dts": "^4.3.0",
-    "vue-tsc": "^2.1.10"
+    "bumpp": "^10.1.0",
+    "eslint": "^9.23.0",
+    "eslint-plugin-format": "^1.0.1",
+    "typescript": "^5.8.2",
+    "vite": "^6.0.13",
+    "vite-plugin-dts": "^4.5.3",
+    "vitest": "^3.1.1",
+    "vue-tsc": "^2.2.8"
   }
 }
