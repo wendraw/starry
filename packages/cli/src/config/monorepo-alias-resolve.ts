@@ -22,6 +22,8 @@ interface PackageJson {
     /** 源码目录，默认是 src */
     srcDir?: string
   }
+  devDependencies?: Record<string, string>
+  dependencies?: Record<string, string>
 }
 
 /**
@@ -112,12 +114,27 @@ export async function getMonoRepoSubpackMap(dir: string) {
   return packageJsonMap
 }
 
-export async function genMonorepoInfo(prefix?: string): Promise<{ alias: Alias[], dirsList: string[] }> {
+export async function genMonorepoInfo(prefix?: string) {
   const alias: Alias[] = []
   const dirsList: string[] = []
+  const excludeDirsList: string[] = []
   // get all package from package.json subpackage
   const packageJsonMap = await getMonoRepoSubpackMap(ROOT)
+  const cwdPackageJson = JSON.parse(await fs.readFile(join(CWD, 'package.json'), 'utf-8')) as PackageJson
+  const deps = Object.entries({ ...cwdPackageJson.dependencies, ...cwdPackageJson.devDependencies })
   for (const dir in packageJsonMap) {
+    if (dir.includes('node_modules')) {
+      continue
+    }
+    // 过滤掉运行目录
+    if (dir === CWD) {
+      continue
+    }
+    // 过滤掉没有依赖的包
+    if (!deps.some(([key, val]) => key === packageJsonMap[dir].name && val.startsWith('workspace:'))) {
+      continue
+    }
+
     const json = packageJsonMap[dir]
     if (json.buildOptions?.isLib) {
       continue // 如果是 lib 就不需要 alias
@@ -125,6 +142,7 @@ export async function genMonorepoInfo(prefix?: string): Promise<{ alias: Alias[]
     if (json?.name?.includes('@wendraw/starry')) {
       continue
     }
+
     if (json?.name?.startsWith(prefix ?? '')) {
       alias.push({
         find: json.name,
@@ -138,8 +156,11 @@ export async function genMonorepoInfo(prefix?: string): Promise<{ alias: Alias[]
     const relativeDir = path.relative(CWD, dir)
     // 过滤掉运行目录 和 根目录
     if (relativeDir && dir !== ROOT) {
-      dirsList.push(path.join(relativeDir, '**/*'))
+      // Add the directory with glob pattern
+      dirsList.push(join(relativeDir, '**/*'))
+      // Add negative patterns directly in dirsList instead of a separate excludeDirsList
+      dirsList.push(`!${join(relativeDir, 'node_modules/**/*')}`)
     }
   }
-  return { alias, dirsList }
+  return { alias, autoImport: { dirsList, excludeDirsList } }
 }

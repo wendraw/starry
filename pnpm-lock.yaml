@@ -102,21 +102,26 @@ importers:
       '@wendraw/lib':
         specifier: workspace:*
         version: link:../lib
+      '@wendraw/lib2':
+        specifier: workspace:*
+        version: link:../lib2
       vue:
         specifier: ^3.5.13
         version: 3.5.13(typescript@5.8.2)
     devDependencies:
-      '@vitejs/plugin-vue':
-        specifier: ^5.2.3
-        version: 5.2.3(vite@6.2.4(@types/node@18.19.86)(jiti@2.4.2)(terser@5.37.0)(tsx@4.19.2)(yaml@2.7.1))(vue@3.5.13(typescript@5.8.2))
       '@wendraw/starry':
         specifier: workspace:*
         version: link:../../packages/cli
-      unplugin-auto-import:
-        specifier: ^19.1.2
-        version: 19.1.2(@vueuse/core@10.11.1(vue@3.5.13(typescript@5.8.2)))
 
   playground/lib: {}
+
+  playground/lib2:
+    dependencies:
+      '@wendraw/lib':
+        specifier: workspace:*
+        version: link:../lib
+
+  playground/nodeps: {}
 
 packages:
 
@@ -6010,11 +6015,6 @@ snapshots:
   '@vitejs/plugin-vue@5.2.3(vite@4.3.3(@types/node@18.19.86)(terser@5.37.0))(vue@3.5.13(typescript@5.8.2))':
     dependencies:
       vite: 4.3.3(@types/node@18.19.86)(terser@5.37.0)
-      vue: 3.5.13(typescript@5.8.2)
-
-  '@vitejs/plugin-vue@5.2.3(vite@6.2.4(@types/node@18.19.86)(jiti@2.4.2)(terser@5.37.0)(tsx@4.19.2)(yaml@2.7.1))(vue@3.5.13(typescript@5.8.2))':
-    dependencies:
-      vite: 6.2.4(@types/node@18.19.86)(jiti@2.4.2)(terser@5.37.0)(tsx@4.19.2)(yaml@2.7.1)
       vue: 3.5.13(typescript@5.8.2)
 
   '@vitest/eslint-plugin@1.1.38(@typescript-eslint/utils@8.29.0(eslint@9.23.0(jiti@2.4.2))(typescript@5.8.2))(eslint@9.23.0(jiti@2.4.2))(typescript@5.8.2)(vitest@3.1.1(@types/debug@4.1.12)(@types/node@18.19.86)(jiti@2.4.2)(terser@5.37.0)(tsx@4.19.2)(yaml@2.7.1))':

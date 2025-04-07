@@ -7,6 +7,7 @@ console.log(add(1, 3))
     <div>@wendraw/lib: hello() => {{ hello() }} Starry</div>
     <div>@wendraw/lib: add(1, 2) => {{ add(1, 2) }}</div>
     <div>@wendraw/lib/inner: innerSub(1, 2) => {{ innerSub(1, 2) }}</div>
+    <div>@wendraw/lib2: helloLib() => {{ helloLib() }}</div>
   </div>
 </template>
 

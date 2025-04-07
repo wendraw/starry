@@ -11,7 +11,7 @@ import { genMonorepoInfo } from './monorepo-alias-resolve.js'
 export async function getViteConfigForSiteDev(_: OptionsType): Promise<InlineConfig> {
   setBuildTarget('site')
 
-  const { alias, dirsList } = await genMonorepoInfo()
+  const { alias, autoImport } = await genMonorepoInfo()
 
   return {
     resolve: {
@@ -32,7 +32,7 @@ export async function getViteConfigForSiteDev(_: OptionsType): Promise<InlineCon
         vueTemplate: true,
         injectAtEnd: true,
         // 添加对用户定义的 stores 的自动导入支持
-        dirs: dirsList,
+        dirs: autoImport.dirsList,
         // 启用目录扫描的类型支持
         dirsScanOptions: {
           types: true,
