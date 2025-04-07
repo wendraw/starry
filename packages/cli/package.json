@@ -1,7 +1,7 @@
 {
   "name": "@wendraw/starry",
   "type": "module",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A CLI that encapsulates Vite's support for monorepos",
   "author": "wendraw",
   "license": "ISC",
