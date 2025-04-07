@@ -158,8 +158,89 @@ export async function genMonorepoInfo(prefix?: string) {
     if (relativeDir && dir !== ROOT) {
       // Add the directory with glob pattern
       dirsList.push(join(relativeDir, '**/*'))
-      // Add negative patterns directly in dirsList instead of a separate excludeDirsList
+
+      // 过滤掉 node_modules
       dirsList.push(`!${join(relativeDir, 'node_modules/**/*')}`)
+
+      // 识别源码目录
+      const srcDir = json.buildOptions?.srcDir || 'src'
+      const possibleSrcDirs = ['src', 'source', 'lib', 'packages']
+
+      // 过滤常见的编译输出目录，但排除可能的源码目录
+      const commonOutputDirs = ['dist', 'build', 'output', 'umd', 'cjs', 'esm']
+      for (const outputDir of commonOutputDirs) {
+        if (!possibleSrcDirs.includes(outputDir)) {
+          dirsList.push(`!${join(relativeDir, `${outputDir}/**/*`)}`)
+        }
+      }
+
+      // 用于判断路径是否是源码文件
+      function isSourceFile(path: string): boolean {
+        if (!path)
+          return false
+        const isSourceExt = /\.(?:ts|tsx|jsx)$/.test(path)
+        const isMinified = path.includes('.min.') || path.includes('.bundle.')
+        return isSourceExt && !isMinified
+      }
+
+      // 用于判断目录是否是源码目录
+      function isSourceDir(dir: string): boolean {
+        if (!dir)
+          return false
+        return dir === srcDir || possibleSrcDirs.includes(dir)
+      }
+
+      // 提取路径中的第一个目录
+      function extractFirstDirectory(path: string): string | null {
+        if (!path)
+          return null
+        // 移除开头的 './' 或 '/'
+        const normalizedPath = path.replace(/^\.?\/?/, '')
+        // 提取第一个斜杠前的内容
+        const firstSlashIndex = normalizedPath.indexOf('/')
+        if (firstSlashIndex === -1)
+          return null
+        return normalizedPath.substring(0, firstSlashIndex)
+      }
+
+      // 尝试从 package.json 的 main/module 字段推断输出目录
+      if (json.main || json.module) {
+        const outputPaths = [
+          json.main,
+          json.module,
+        ].filter(Boolean) as string[]
+
+        for (const outputPath of outputPaths) {
+          const outputDir = extractFirstDirectory(outputPath)
+          if (outputDir) {
+            // 如果不是源码目录，并且路径不是指向源码文件，则认为是输出目录
+            if (!isSourceDir(outputDir) && !isSourceFile(outputPath)) {
+              dirsList.push(`!${join(relativeDir, `${outputDir}/**/*`)}`)
+            }
+          }
+        }
+      }
+
+      // 检查 exports 字段中可能的输出目录
+      if (json.exports) {
+        for (const [, exportValue] of Object.entries(json.exports)) {
+          const exportPaths = [
+            exportValue.import,
+            exportValue.default,
+            exportValue.require,
+          ].filter(Boolean) as string[]
+
+          for (const exportPath of exportPaths) {
+            const outputDir = extractFirstDirectory(exportPath)
+            if (outputDir) {
+              // 如果不是源码目录，并且路径不是指向源码文件，则认为是输出目录
+              if (!isSourceDir(outputDir) && !isSourceFile(exportPath)) {
+                dirsList.push(`!${join(relativeDir, `${outputDir}/**/*`)}`)
+              }
+            }
+          }
+        }
+      }
     }
   }
   return { alias, autoImport: { dirsList, excludeDirsList } }
