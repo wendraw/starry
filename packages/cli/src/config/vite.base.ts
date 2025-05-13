@@ -19,8 +19,6 @@ export async function getViteConfigForSiteDev(_: OptionsType): Promise<InlineCon
     },
 
     optimizeDeps: {
-      // https://github.com/youzan/vant/issues/10930
-      include: ['vue', 'vue-router'],
       exclude: Object.keys(alias),
     },
 
@@ -28,7 +26,6 @@ export async function getViteConfigForSiteDev(_: OptionsType): Promise<InlineCon
       vitePluginVue(),
       // https://github.com/antfu/unplugin-auto-import
       AutoImport({
-        imports: ['vue', 'vue-router'],
         vueTemplate: true,
         injectAtEnd: true,
         // 添加对用户定义的 stores 的自动导入支持
