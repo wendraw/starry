@@ -2,7 +2,6 @@ import type { InlineConfig } from 'vite'
 
 import type { OptionsType } from '../common/index'
 import type { BuildLibOptions } from '../common/index.js'
-import vitePluginVue from '@vitejs/plugin-vue'
 import AutoImport from 'unplugin-auto-import/vite'
 
 import { setBuildTarget } from '../common/index.js'
@@ -18,12 +17,13 @@ export async function getViteConfigForSiteDev(_: OptionsType): Promise<InlineCon
       alias,
     },
 
+    configFile: false,
+
     optimizeDeps: {
       exclude: Object.keys(alias),
     },
 
     plugins: [
-      vitePluginVue(),
       // https://github.com/antfu/unplugin-auto-import
       AutoImport({
         vueTemplate: true,

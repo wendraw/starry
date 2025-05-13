@@ -1,7 +1,7 @@
 {
   "version": "0.0.3",
   "private": true,
-  "packageManager": "pnpm@10.7.1",
+  "packageManager": "pnpm@10.10.0",
   "scripts": {
     "dev": "pnpm -F starry dev",
     "build": "pnpm -r build",
@@ -11,16 +11,14 @@
     "publish": "bumpp package.json packages/*/package.json --commit --push --tag && pnpm run build && pnpm -r publish"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "^4.11.0",
-    "@types/node": "^18.19.86",
+    "@antfu/eslint-config": "^4.13.0",
+    "@types/node": "^18.19.100",
     "@wendraw/starry": "workspace:*",
     "bumpp": "^10.1.0",
-    "eslint": "^9.23.0",
+    "eslint": "^9.26.0",
     "eslint-plugin-format": "^1.0.1",
-    "typescript": "^5.8.2",
-    "vite": "^6.0.13",
-    "vite-plugin-dts": "^4.5.3",
-    "vitest": "^3.1.1",
-    "vue-tsc": "^2.2.8"
+    "typescript": "^5.8.3",
+    "vite": "^6.3.5",
+    "vitest": "^3.1.3"
   }
 }
